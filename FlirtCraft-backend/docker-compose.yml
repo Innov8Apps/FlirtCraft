@@ -1,0 +1,277 @@
+# =============================================================================
+# FlirtCraft - Local Development Environment
+# =============================================================================
+# Complete local containerization setup for FlirtCraft application
+# Services: Backend API, PostgreSQL, Redis, Adminer (DB Admin)
+# =============================================================================
+
+services:
+  # =============================================================================
+  # Backend API Service (FastAPI)
+  # =============================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: flirtcraft-backend-dev
+    ports:
+      - "8000:8000"  # FastAPI development server
+    environment:
+      # Application settings
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+      # Database connection
+      - DATABASE_URL=postgresql://flirtcraft_user:flirtcraft_pass@db:5432/flirtcraft_db
+      # Redis connection
+      - REDIS_URL=redis://redis:6379/0
+      # API Keys (will be overridden by .env file)
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your-gemini-api-key-here}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      # Supabase settings (for local development, these can be mock values)
+      - SUPABASE_URL=${SUPABASE_URL:-http://localhost:54321}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-your-supabase-anon-key}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY:-your-supabase-service-key}
+      # CORS settings for frontend development
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006,exp://192.168.1.100:19000
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app:delegated
+      # Preserve node_modules and Python cache
+      - backend_cache:/app/__pycache__
+      - backend_logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # =============================================================================
+  # PostgreSQL Database Service
+  # =============================================================================
+  db:
+    image: postgres:15-alpine
+    container_name: flirtcraft-postgres-dev
+    ports:
+      - "5432:5432"  # Expose for external tools like pgAdmin, DBeaver
+    environment:
+      - POSTGRES_DB=flirtcraft_db
+      - POSTGRES_USER=flirtcraft_user
+      - POSTGRES_PASSWORD=flirtcraft_pass
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      # Persist database data
+      - postgres_data:/var/lib/postgresql/data
+      # Custom initialization scripts
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flirtcraft_user -d flirtcraft_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.max=10000
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+
+  # =============================================================================
+  # Redis Service (Caching & Background Jobs)
+  # =============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: flirtcraft-redis-dev
+    ports:
+      - "6379:6379"  # Expose for Redis tools and debugging
+    environment:
+      - REDIS_PASSWORD=flirtcraft_redis_dev
+    volumes:
+      # Persist Redis data (optional for development)
+      - redis_data:/data
+      # Redis configuration
+      - ./docker/redis/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    command: >
+      redis-server /etc/redis/redis.conf
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+
+  # =============================================================================
+  # Adminer (Database Administration Tool)
+  # =============================================================================
+  adminer:
+    image: adminer:4.8.1
+    container_name: flirtcraft-adminer-dev
+    ports:
+      - "8080:8080"  # Web interface for database management
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+      - ADMINER_DESIGN=pepa-linha-dark
+    depends_on:
+      - db
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=false"  # Disable if using Traefik
+
+  # =============================================================================
+  # Redis Commander (Redis Management Tool)
+  # =============================================================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: flirtcraft-redis-commander-dev
+    ports:
+      - "8081:8081"  # Web interface for Redis management
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin
+    depends_on:
+      - redis
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+
+  # =============================================================================
+  # Background Worker Service (RQ Worker for Background Jobs)
+  # =============================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: flirtcraft-worker-dev
+    environment:
+      # Same environment as backend
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=debug
+      - DATABASE_URL=postgresql://flirtcraft_user:flirtcraft_pass@db:5432/flirtcraft_db
+      - REDIS_URL=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your-gemini-api-key-here}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+    volumes:
+      - .:/app:delegated
+      - worker_logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - flirtcraft-network
+    restart: unless-stopped
+    # Override command to run RQ worker instead of web server
+    command: >
+      sh -c "
+        echo 'Starting FlirtCraft RQ Worker for background jobs...';
+        python worker.py
+      "
+
+# =============================================================================
+# Networks Configuration
+# =============================================================================
+networks:
+  flirtcraft-network:
+    driver: bridge
+    name: flirtcraft-dev-network
+
+# =============================================================================
+# Volumes Configuration
+# =============================================================================
+volumes:
+  # PostgreSQL data persistence
+  postgres_data:
+    driver: local
+    name: flirtcraft-postgres-data
+  
+  # Redis data persistence  
+  redis_data:
+    driver: local
+    name: flirtcraft-redis-data
+  
+  # Backend caches and logs
+  backend_cache:
+    driver: local
+    name: flirtcraft-backend-cache
+  
+  backend_logs:
+    driver: local
+    name: flirtcraft-backend-logs
+  
+  worker_logs:
+    driver: local
+    name: flirtcraft-worker-logs
+
+# =============================================================================
+# Development Usage Instructions
+# =============================================================================
+# 
+# Quick Start:
+# 1. Copy .env.example to .env and fill in your API keys
+# 2. Run: docker-compose up --build
+# 3. Backend API: http://localhost:8000
+# 4. API Docs: http://localhost:8000/docs
+# 5. Database Admin: http://localhost:8080 (admin/admin)
+# 6. Redis Admin: http://localhost:8081 (admin/admin)
+# 
+# Development Commands:
+# - Start all services: docker-compose up -d
+# - View logs: docker-compose logs -f [service_name]
+# - Stop all: docker-compose down
+# - Rebuild: docker-compose up --build
+# - Reset database: docker-compose down -v && docker-compose up --build
+# 
+# Service Access:
+# - Backend API: localhost:8000
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
+# - Adminer (DB): localhost:8080
+# - Redis Commander: localhost:8081
+# 
+# Database Connection (for external tools):
+# - Host: localhost
+# - Port: 5432
+# - Database: flirtcraft_db
+# - Username: flirtcraft_user
+# - Password: flirtcraft_pass
+# 
+# Hot Reloading:
+# - Backend code changes automatically restart the server
+# - No need to rebuild containers for code changes
+# - Database schema changes require migrations
+# 
+# Troubleshooting:
+# - Check logs: docker-compose logs [service_name]
+# - Reset volumes: docker-compose down -v
+# - Clean rebuild: docker-compose down && docker system prune && docker-compose up --build
+# =============================================================================

@@ -1,0 +1,259 @@
+FlirtCraft: AI-Powered Social Skills Training App
+Executive Summary
+FlirtCraft is a gamified mobile app that helps users build confidence and conversational skills for real-world romantic interactions through realistic AI-powered practice scenarios.
+Core Problem & Solution
+Problem: Many people lack confidence initiating conversations with romantic interests in real-life situations.
+Solution: Safe, judgment-free environment to practice through progressively challenging AI conversations that mirror real social dynamics.
+Key Features & User Journey
+1. User Onboarding
+
+Registration/Sign-in: Standard authentication flow
+Profile Setup:
+
+User age (for age-appropriate interactions)
+Target sex
+Target age range preference
+Skill goals: conversation starters, flow maintenance, storytelling
+
+
+
+2. Scenario Selection Hub
+8 Location Categories:
+
+Coffee Shops & Cafes
+Bookstores & Libraries
+Fitness Centers & Gyms
+Parks & Outdoor Spaces
+Bars & Social Venues
+University Campus
+Grocery Stores & Daily Life
+Art Galleries & Cultural Events
+
+3 Difficulty Levels:
+
+🟢 Green (Friendly): Open, receptive, making eye contact
+🟡 Yellow (Real Talk): Neutral, realistic stranger behavior
+🔴 Red (A-Game): Reserved, busy, requires genuine skill
+
+3. Pre-Conversation Context Screen
+Loading animation while AI compiles scenario (builds anticipation)
+Context screen is based on selected location and difficulty; the ai needs to rememebr the users prefernece on ai gender
+AI generates 4 randomized items per category, displayed as intuitive visual boxes:
+
+
+Appearance Cues (Visual boxes with headers):
+
+Box Headers: Age range + general style vibe
+
+Examples: "Early 20s, Goth" | "Late 20s, Business Professional" | "Mid-20s, Playful Attire"
+
+Box Details: Specific observable items (NO names - stranger context)
+
+"Vintage denim jacket on"
+"Bright blue eyes"
+"Worn brown leather shoes"
+"Blue framed designer glasses"
+"Carrying Kate Spade purse"
+"Silver nose ring"
+"Messy bun hairstyle"
+"Athletic wear with Nike runners"
+
+
+
+Environment Details (Context boxes):
+
+Box Headers: Time of day + crowd level
+
+Examples: "Afternoon, Crowded" | "Evening, Few People" | "Midnight, Empty"
+
+
+Box Details: Specific scene elements
+
+"Playing fetch with golden retriever"
+"Crowd cheering football game"
+"She is running on treadmill"
+"Empty seat beside her"
+"Chatting with a friend"
+"Hanging with friend group"
+"Ed Sheeran song playing"
+"Rain starting outside"
+"Barista calling orders"
+
+
+
+Body Language Signals (Color-coded boxes):
+
+🟢 Positive signals:
+
+"Looked at you twice"
+"Smiled then looked down"
+"Plays with her hair"
+"Relaxed open posture"
+
+
+🟡 Neutral signals:
+
+"Brief eye contact passing"
+"Focused on book"
+"Checking phone occasionally"
+
+
+🔴 Negative signals:
+
+"Arms crossed tightly"
+"Seems distracted, busy"
+"Avoiding eye contact"
+"Turned away from you"
+
+
+
+AI Starter Suggestions (Context-aware openers):
+
+Dog cue: "Your dog's got great energy—what's their name?"
+Football crowd: "Who are you rooting for?"
+Treadmill runner: "You run here often?"
+Empty seat: "Mind if I grab this seat?"
+With friend: "How do you two know each other?"
+Glasses cue: "Those blue frames are sharp—where'd you get them?"
+Kate Spade purse: "Nice bag—Kate Spade, right?"
+Music cue: "Love this song—are you into Ed Sheeran?"
+Book reader: "What are you reading? Looks intense."
+
+Important: All elements must be coherent and non-contradictory, matching location and difficulty level
+4. Conversation Interface
+Core Mechanics:
+
+Real-time chat with AI agent
+AI takes the gender that the user preselected in his preferences (male/female/randomized)
+AI perceives and remembers user's age from profile (for appropriate interactions)
+AI maintains full context awareness:
+
+Generated appearance details from context screen
+Environmental factors
+Body language starting position
+Previous messages in conversation
+User's stated age and preferences
+
+
+12-minute maximum conversation length or 50 message in total (25 from ai and 25 from user)
+Natural conversation endings (success or polite exit)
+
+Live Feedback System:
+Apperas situationally and not overwhelmingly and suttle.
+
+🟢 Positive: "She's leaning in", "Genuine laugh"
+🟡 Neutral: "Listening politely", "Checking phone briefly"
+🔴 Warning: "Looking for exits", "Short responses"
+💡 Tips: "Try asking about interests", "Good timing for compliment"
+
+AI Behavior Rules:
+
+Responds based on difficulty level
+Can end conversation naturally
+May offer contact info if conversation goes well or accept giving it when asked based on the whole context or reject it.
+Can reject advances realistically ("I have a boyfriend")
+Maintains character consistency throughout interaction
+
+5. Post-Interaction Success Metrics
+Immediate Session Results:
+
+Bronze: Maintained natural conversation flow
+Silver: Generated positive reactions/genuine engagement
+Gold: Successfully exchanged contact information
+
+Gamification Elements (Displayed immediately after conversation):
+
+XP points earned for:
+
+Smooth topic transitions
+Reading social cues correctly
+Maintaining respectful interaction
+Natural conversation flow
+
+
+Achievement unlocks: "Ice Breaker", "Smooth Operator", "Social Radar"
+Streak counter update
+Level progression bar
+
+6. General Performance Analysis (Separate screen)
+Comprehensive Review:
+
+Overall Score: Aggregated from conversation flow, respect, authenticity
+Strengths Identified:
+
+"Great at active listening"
+"Natural humor timing"
+"Excellent ice breakers"
+
+
+Areas for Improvement:
+
+"Work on transitioning topics"
+"Read body language cues earlier"
+"Build more engaging questions"
+
+
+Recommended Next Steps:
+
+Suggested scenarios to practice
+Specific skills to focus on
+Difficulty level recommendations
+
+
+
+Weekly Progress Reports:
+
+Conversation success rate trends
+Most improved skills
+Challenge completion status
+
+Technical Requirements
+AI Agent Configuration
+
+Context Awareness: Full scenario memory (location, difficulty, appearance, environment)
+Age Appropriateness: Interactions match user and target age ranges
+Realistic Responses: Natural conversation flow based on:
+
+User's conversation quality
+Chosen difficulty level
+Social cues and timing
+
+
+Dynamic Adaptation: Adjusts within conversation based on user performance
+
+Content Guidelines
+
+Tone: Playful but respectful, encouraging authentic connection
+No PUA tactics: Focus on genuine communication skills
+Current & Relevant: Include pop culture references, seasonal themes
+Easter Eggs: Humorous achievements, fun loading tips
+
+Monetization Model
+
+Free Tier: 1 scenario daily, basic difficulties
+Premium Weekly: Unlimited scenarios, all difficulties, detailed analytics
+Scenario Packs: One-time purchases for themed collections
+Referral System:
+
+Users who refer friends receive exclusive scenario access (limited uses)
+Promotional upsell: After successful referral, offer discounted premium upgrade
+Viral mechanic: Share anonymous success stories for bonus scenarios
+
+
+
+Privacy & Safety
+
+No real personal information shared
+Clear respectful interaction guidelines
+Report system for inappropriate AI responses
+Focus on skill-building for real-world application
+
+Success Metrics
+
+User engagement: Daily active users, session length
+Skill progression: Average XP gain, achievement unlocks
+Conversion: Free to premium upgrade rate
+Viral growth: Referral rates, social sharing
+
+Core Value Proposition
+FlirtCraft transforms social anxiety into social confidence through gamified practice, real-time feedback, and progressive skill-building—preparing users for authentic real-world connections.

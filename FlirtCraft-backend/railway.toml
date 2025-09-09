@@ -1,0 +1,267 @@
+# =============================================================================
+# FlirtCraft Backend - Railway Deployment Configuration
+# =============================================================================
+# Production deployment configuration for Railway platform
+# Optimized for scalability, monitoring, and cost efficiency
+# =============================================================================
+
+[build]
+# Use Dockerfile for consistent builds
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Start command - Railway will override PORT
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT --workers $RAILWAY_WORKERS --worker-class uvicorn.workers.UvicornWorker"
+
+# Health check configuration
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+healthcheckInterval = 60
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Graceful shutdown timeout
+terminationGracePeriodSeconds = 30
+
+[env]
+# Production environment defaults
+ENVIRONMENT = "production"
+DEBUG = "false"
+LOG_LEVEL = "info"
+
+# Worker configuration (Railway will set based on plan)
+RAILWAY_WORKERS = { default = "2", production = "4" }
+WEB_CONCURRENCY = "$RAILWAY_WORKERS"
+
+# Performance optimizations
+UVICORN_ACCESS_LOG = "true"
+UVICORN_LOOP = "uvloop"
+UVICORN_HTTP = "httptools"
+
+# Security settings
+TRUSTED_HOSTS = "*.railway.app,flirtcraft.app,*.flirtcraft.app"
+
+# Database settings
+DATABASE_POOL_SIZE = "20"
+DATABASE_MAX_OVERFLOW = "0"
+DATABASE_POOL_TIMEOUT = "30"
+DATABASE_POOL_RECYCLE = "3600"
+
+# Redis settings  
+REDIS_MAX_CONNECTIONS = "50"
+REDIS_SOCKET_KEEPALIVE = "true"
+
+# Monitoring
+ENABLE_METRICS = "true"
+SENTRY_ENVIRONMENT = "production"
+SENTRY_TRACES_SAMPLE_RATE = "0.1"
+
+# Rate limiting
+RATE_LIMIT_ENABLED = "true"
+RATE_LIMIT_REQUESTS = "100"
+RATE_LIMIT_WINDOW = "60"
+
+# File upload limits
+MAX_UPLOAD_SIZE = "10485760"  # 10MB
+MAX_IMAGE_SIZE = "5242880"    # 5MB
+
+# Background job settings
+RQ_WORKER_COUNT = "2"
+RQ_DEFAULT_JOB_TIMEOUT = "300"  # 5 minutes
+
+# AI API settings
+GEMINI_REQUESTS_PER_MINUTE = "60"
+GEMINI_REQUESTS_PER_DAY = "1500"
+AI_REQUEST_TIMEOUT = "30"
+AI_MAX_RETRIES = "3"
+
+# Cache settings
+CACHE_TTL_USER_PROFILE = "3600"      # 1 hour
+CACHE_TTL_SCENARIOS = "86400"        # 24 hours  
+CACHE_TTL_CONVERSATIONS = "1800"     # 30 minutes
+CACHE_TTL_AI_RESPONSES = "7200"      # 2 hours
+
+# CORS settings (production)
+ALLOWED_ORIGINS = "https://flirtcraft.app,https://www.flirtcraft.app"
+
+# Feature flags
+FEATURE_AI_DEBUGGING = "false"
+FEATURE_DETAILED_LOGGING = "false"
+FEATURE_MOCK_PAYMENTS = "false"
+FEATURE_DEV_ENDPOINTS = "false"
+
+[volumes]
+# Railway doesn't support persistent volumes, using for logs only
+logs = "/app/logs"
+
+[resources]
+# Resource requirements (adjust based on Railway plan)
+memory = "512Mi"  # Minimum for production
+cpu = "0.5"       # 500m CPU
+replicas = { min = 1, max = 5 }  # Auto-scaling
+
+[services.backend]
+# Main backend service configuration
+httpPort = 8000
+name = "flirtcraft-backend"
+
+[services.worker]
+# Background worker service (optional separate deployment)
+name = "flirtcraft-worker"
+dockerfile = "Dockerfile"
+startCommand = "python worker.py"
+
+# No HTTP port for worker
+httpPort = null
+
+# Worker-specific environment
+[services.worker.env]
+WORKER_TYPE = "rq"
+WORKER_QUEUES = "high,default,low"
+WORKER_CONCURRENCY = "2"
+
+[networking]
+# Network configuration
+allowPublic = true
+internalPort = 8000
+
+# Custom domains (configure in Railway dashboard)
+# domains = ["api.flirtcraft.app"]
+
+[monitoring]
+# Monitoring and observability
+enableMetrics = true
+metricsPath = "/metrics"
+
+# Log configuration  
+enableAccessLogs = true
+logFormat = "json"
+logLevel = "info"
+
+# Health checks
+healthCheck = {
+    path = "/health",
+    intervalSeconds = 30,
+    timeoutSeconds = 10,
+    failureThreshold = 3,
+    successThreshold = 1
+}
+
+[security]
+# Security configuration
+allowHttp = false  # Force HTTPS in production
+enableHSTS = true
+hstsMaxAge = 31536000  # 1 year
+
+# Content Security Policy
+csp = {
+    defaultSrc = ["'self'"],
+    scriptSrc = ["'self'", "'unsafe-inline'"],
+    styleSrc = ["'self'", "'unsafe-inline'"],
+    imgSrc = ["'self'", "data:", "https:"],
+    connectSrc = ["'self'", "https://api.openai.com", "https://*.supabase.co"],
+    fontSrc = ["'self'", "https:"],
+    objectSrc = ["'none'"],
+    mediaSrc = ["'self'"],
+    frameSrc = ["'none'"]
+}
+
+[deployment]
+# Deployment strategy
+strategy = "rolling"
+maxUnavailable = 1
+maxSurge = 1
+
+# Deployment hooks
+[deployment.hooks]
+preDeploy = [
+    "echo 'Starting deployment...'",
+    "python -c 'from app.models import Base; print(\"Models validated\")'",
+]
+
+postDeploy = [
+    "echo 'Deployment completed'",
+    "curl -f $RAILWAY_STATIC_URL/health || exit 1",
+]
+
+preStop = [
+    "echo 'Graceful shutdown initiated'",
+]
+
+[scaling]
+# Auto-scaling configuration (Railway Pro plan)
+enabled = true
+minReplicas = 1
+maxReplicas = 5
+
+# Scaling metrics
+[scaling.metrics.cpu]
+targetAverageUtilization = 70
+
+[scaling.metrics.memory]  
+targetAverageUtilization = 80
+
+[scaling.metrics.http]
+targetAverageValue = 100  # requests per second
+
+# Scale up/down behavior
+[scaling.behavior]
+scaleUp = {
+    stabilizationWindowSeconds = 60,
+    policies = [
+        { type = "percent", value = 100, periodSeconds = 60 },
+        { type = "pods", value = 2, periodSeconds = 60 }
+    ]
+}
+
+scaleDown = {
+    stabilizationWindowSeconds = 300,
+    policies = [
+        { type = "percent", value = 10, periodSeconds = 60 }
+    ]
+}
+
+# =============================================================================
+# Railway-specific Configuration Notes
+# =============================================================================
+# 
+# Required Railway Plugins:
+# - PostgreSQL: Database storage
+# - Redis: Caching and job queue
+# - (Optional) Sentry: Error monitoring
+# 
+# Required Environment Variables (set in Railway dashboard):
+# - SECRET_KEY: Application secret key
+# - GEMINI_API_KEY: Google Gemini API key
+# - SUPABASE_URL: Supabase project URL  
+# - SUPABASE_ANON_KEY: Supabase anonymous key
+# - SUPABASE_SERVICE_KEY: Supabase service role key
+# - SENTRY_DSN: Sentry DSN for error tracking
+# 
+# Railway automatically provides:
+# - DATABASE_URL: PostgreSQL connection string
+# - REDIS_URL: Redis connection string
+# - PORT: Application port (usually 8000)
+# - RAILWAY_STATIC_URL: Public URL of the service
+# - RAILWAY_ENVIRONMENT: Environment (production/staging)
+# 
+# Deployment Commands:
+# railway up                    # Deploy from local
+# railway up --service backend  # Deploy specific service
+# railway status               # Check deployment status
+# railway logs                 # View application logs
+# 
+# Database Management:
+# railway run alembic upgrade head    # Run migrations
+# railway run python -m app.seed     # Seed database (if implemented)
+# 
+# Performance Considerations:
+# - Railway Starter: 512MB RAM, 1 vCPU, suitable for development
+# - Railway Pro: 8GB RAM, 8 vCPU, recommended for production
+# - Enable auto-scaling for production workloads
+# - Use Redis for caching to reduce database load
+# - Configure proper resource limits to control costs
+# =============================================================================

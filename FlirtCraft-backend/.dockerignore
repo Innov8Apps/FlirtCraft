@@ -1,0 +1,146 @@
+# =============================================================================
+# FlirtCraft Backend - Docker Ignore File
+# =============================================================================
+# Optimize Docker build performance by excluding unnecessary files
+# =============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.pyc
+*.pyo
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.python-version
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and README files
+*.md
+docs/
+README*
+CHANGELOG*
+LICENSE*
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment files (use docker secrets/env vars instead)
+.env*
+!.env.example
+
+# Database files (should be external)
+*.db
+*.sqlite3
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+Jenkinsfile
+
+# Local development tools
+.pre-commit-config.yaml
+.editorconfig
+.flake8
+.isort.cfg
+mypy.ini
+setup.cfg
+tox.ini
+
+# Package manager files (keep requirements.txt)
+Pipfile
+Pipfile.lock
+poetry.lock
+pyproject.toml
+conda.yml
+environment.yml
+
+# Local data and uploads
+uploads/
+static/media/
+user_data/
+backups/
+
+# Redis dump files
+dump.rdb
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Local configuration overrides
+local_settings.py
+settings_local.py

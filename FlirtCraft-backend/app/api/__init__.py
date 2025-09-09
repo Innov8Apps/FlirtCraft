@@ -1,0 +1,3 @@
+"""
+FlirtCraft API package.
+"""

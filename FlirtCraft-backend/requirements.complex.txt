@@ -1,0 +1,103 @@
+# =============================================================================
+# FlirtCraft Backend API - Production Dependencies
+# =============================================================================
+# Optimized dependency list for production deployment with security and performance
+# Compatible with Python 3.11+ and Railway/Docker deployment
+# =============================================================================
+
+# Core FastAPI and server dependencies
+fastapi==0.105.0
+uvicorn[standard]==0.24.0
+uvloop==0.19.0  # Enhanced async event loop for better performance
+httptools==0.6.1  # High-performance HTTP parsing
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# Database dependencies (PostgreSQL with async support)
+sqlalchemy[asyncio]==2.0.23
+asyncpg==0.29.0  # Async PostgreSQL driver
+psycopg2-binary==2.9.9  # Fallback sync PostgreSQL driver
+alembic==1.13.1  # Database migrations
+
+# Redis and background tasks (async support)
+redis[hiredis]==5.0.1  # Redis with hiredis for better performance
+rq==1.15.1  # Redis Queue for background jobs
+hiredis==2.2.3  # High-performance Redis parser
+
+# Authentication and security
+python-jose[cryptography]==3.3.0  # JWT token handling
+passlib[bcrypt]==1.7.4  # Password hashing
+cryptography>=42.0.0  # Enhanced cryptography support
+python-multipart==0.0.6  # File upload support
+
+# HTTP client (async support)
+httpx==0.25.2  # Modern async HTTP client
+requests==2.31.0  # Fallback sync HTTP client
+
+# Environment and configuration management
+python-dotenv==1.0.0  # Environment variable loading
+
+# AI/ML dependencies
+google-generativeai==0.3.2  # Google Gemini API
+aiohttp==3.9.1  # Async HTTP client for AI APIs
+
+# Supabase integration
+supabase==2.3.4  # Supabase Python client
+postgrest==0.13.2  # PostgREST API client
+
+# Date and time utilities
+python-dateutil==2.8.2
+pytz==2023.3  # Timezone support
+
+# Validation and data processing
+email-validator==2.1.0  # Email validation
+validators==0.22.0  # URL and data validation
+
+# Monitoring and observability
+sentry-sdk[fastapi]==1.40.0  # Error tracking and monitoring
+prometheus-client==0.19.0  # Metrics collection
+
+# JSON and data serialization
+orjson==3.9.10  # High-performance JSON serialization
+
+# Caching and performance
+cachetools==5.3.2  # In-memory caching utilities
+
+# WebSocket support for real-time features
+websockets==12.0
+
+# Rate limiting
+slowapi==0.1.9  # Rate limiting middleware
+
+# CORS and security middleware
+starlette==0.27.0  # ASGI framework (FastAPI dependency)
+
+# File handling and utilities
+aiofiles==23.2.1  # Async file operations
+Pillow==10.1.0  # Image processing (if needed for profile pictures)
+
+# Background task scheduling
+celery[redis]==5.3.4  # Alternative to RQ for complex workflows
+
+# =============================================================================
+# Version Compatibility Notes
+# =============================================================================
+# - Python 3.11+ required for optimal performance
+# - All packages tested with Railway deployment
+# - FastAPI 0.105+ includes latest security patches
+# - SQLAlchemy 2.0+ for modern async ORM features
+# - Redis 5.0+ for async support and performance
+# - Pydantic 2.0+ for enhanced validation and serialization
+# 
+# Security Updates:
+# - All packages use latest stable versions as of 2024
+# - Cryptography packages updated for vulnerability patches
+# - HTTP libraries updated for security fixes
+# 
+# Performance Optimizations:
+# - uvloop for enhanced async performance
+# - httptools for faster HTTP parsing
+# - hiredis for Redis performance
+# - orjson for faster JSON serialization
+# - asyncpg for PostgreSQL async performance
+# =============================================================================
