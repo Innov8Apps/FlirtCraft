@@ -302,7 +302,7 @@ export const authService = {
     targetGender?: string;
     targetAgeMin?: number;
     targetAgeMax?: number;
-    skillGoals?: string[];
+    skill_goals?: string[];
   }) {
     try {
       const user = await this.getCurrentUser();

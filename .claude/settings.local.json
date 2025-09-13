@@ -54,7 +54,11 @@
       "WebSearch",
       "WebFetch(domain:www.nativewind.dev)",
       "Bash(/c/Users/User/AppData/Local/Programs/Python/Launcher/py -c \"import sys; print(''Python available:'', sys.version)\")",
-      "Read(//d//**)"
+      "Read(//d//**)",
+      "Read(//c/Users/User/AppData/Local/Packages/Microsoft.YourPhone_8wekyb3d8bbwe/TempState/medias/**)",
+      "Bash(node:*)",
+      "Bash(npm run lint)",
+      "mcp__supabase__get_advisors"
     ],
     "deny": [],
     "ask": []

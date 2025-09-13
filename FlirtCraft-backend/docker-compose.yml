@@ -151,7 +151,7 @@ services:
     image: rediscommander/redis-commander:latest
     container_name: flirtcraft-redis-commander-dev
     ports:
-      - "8081:8081"  # Web interface for Redis management
+      - "8082:8081"  # Web interface for Redis management
     environment:
       - REDIS_HOSTS=local:redis:6379
       - HTTP_USER=admin
@@ -242,7 +242,7 @@ volumes:
 # 3. Backend API: http://localhost:8000
 # 4. API Docs: http://localhost:8000/docs
 # 5. Database Admin: http://localhost:8080 (admin/admin)
-# 6. Redis Admin: http://localhost:8081 (admin/admin)
+# 6. Redis Admin: http://localhost:8082 (admin/admin)
 # 
 # Development Commands:
 # - Start all services: docker-compose up -d
@@ -256,7 +256,7 @@ volumes:
 # - PostgreSQL: localhost:5432
 # - Redis: localhost:6379
 # - Adminer (DB): localhost:8080
-# - Redis Commander: localhost:8081
+# - Redis Commander: localhost:8082
 # 
 # Database Connection (for external tools):
 # - Host: localhost

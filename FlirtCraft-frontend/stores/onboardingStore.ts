@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authService, rateLimitService } from '../services/supabase';
+import { rateLimitService as emailRateLimitService } from '../lib/services/rateLimitService';
 
 // 5-step onboarding flow for NEW users (sign-in is separate)
 export type OnboardingStepId = 
@@ -14,7 +16,7 @@ export interface OnboardingFormData {
   // Age verification
   birthDate?: Date;
   ageVerified: boolean;
-  
+
   // Registration
   email: string;
   password: string;
@@ -23,10 +25,10 @@ export interface OnboardingFormData {
   agreedToPrivacy: boolean;
   
   // Preferences
-  userGender: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
-  targetGender: 'male' | 'female' | 'everyone';
-  targetAgeMin: number;
-  targetAgeMax: number;
+  userGender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
+  targetGender?: 'male' | 'female' | 'everyone';
+  targetAgeMin?: number;
+  targetAgeMax?: number;
   
   // Skill goals
   primarySkillGoals: string[];
@@ -39,17 +41,18 @@ export interface OnboardingProgress {
   completedSteps: number;
   isCompleted: boolean;
   startedAt?: Date;
+  lastNavigationDirection?: 'forward' | 'backward';
 }
 
 export interface OnboardingState {
   // Data
   formData: Partial<OnboardingFormData>;
   progress: OnboardingProgress;
-  
+
   // UI state
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   updateFormData: (data: Partial<OnboardingFormData>) => void;
   setCurrentStep: (step: number) => void;
@@ -62,6 +65,7 @@ export interface OnboardingState {
   startOnboarding: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  finalizeAccountCreation: () => Promise<{ success: boolean; error?: string; shouldReturnToRegistration?: boolean }>;
 }
 
 const TOTAL_STEPS = 5; // 5-Screen Flow for NEW users
@@ -75,7 +79,7 @@ const STEP_SEQUENCE: OnboardingStepId[] = [
 ];
 
 const initialProgress: OnboardingProgress = {
-  currentStep: 0,
+  currentStep: 1,
   currentStepId: 'welcome',
   totalSteps: TOTAL_STEPS,
   completedSteps: 0,
@@ -87,7 +91,7 @@ const initialFormData: Partial<OnboardingFormData> = {
   // Age verification
   birthDate: undefined,
   ageVerified: false,
-  
+
   // Registration
   email: '',
   password: '',
@@ -96,18 +100,17 @@ const initialFormData: Partial<OnboardingFormData> = {
   agreedToPrivacy: false,
   
   // Preferences
-  userGender: 'female',
-  targetGender: 'everyone',
-  targetAgeMin: 22,
-  targetAgeMax: 32,
+  userGender: undefined,
+  targetGender: undefined,
+  targetAgeMin: undefined,
+  targetAgeMax: undefined,
   
   // Skill goals
   primarySkillGoals: [],
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       // Initial state
       formData: initialFormData,
       progress: initialProgress,
@@ -125,9 +128,9 @@ export const useOnboardingStore = create<OnboardingState>()(
       },
 
       setCurrentStep: (step: number) => {
-        if (step < 0 || step >= TOTAL_STEPS) return;
+        if (step < 1 || step > TOTAL_STEPS) return;
         
-        const stepId = STEP_SEQUENCE[step];
+        const stepId = STEP_SEQUENCE[step - 1]; // Convert 1-based to 0-based for array index
         
         set((state) => ({
           progress: {
@@ -142,46 +145,73 @@ export const useOnboardingStore = create<OnboardingState>()(
         const stepIndex = STEP_SEQUENCE.indexOf(stepId);
         if (stepIndex === -1) return;
         
-        set((state) => ({
-          progress: {
-            ...state.progress,
-            currentStep: stepIndex,
-            currentStepId: stepId,
-          },
-        }));
+        const currentStep = stepIndex + 1; // Convert 0-based index to 1-based step
+        
+        set((state) => {
+          // Only update if we're actually changing steps
+          if (state.progress.currentStepId === stepId) {
+            return state;
+          }
+          
+          // When navigating to a step, ensure completedSteps reflects the steps that should be completed
+          // If we're going to step N, then step N-1 should be completed
+          const minCompletedSteps = Math.max(0, currentStep - 1);
+          const completedSteps = Math.max(state.progress.completedSteps, minCompletedSteps);
+          
+          return {
+            progress: {
+              ...state.progress,
+              currentStep,
+              currentStepId: stepId,
+              completedSteps,
+            },
+          };
+        });
       },
 
       nextStep: () => {
         const { progress } = get();
-        const nextStep = Math.min(progress.currentStep + 1, TOTAL_STEPS - 1);
-        const stepId = STEP_SEQUENCE[nextStep];
-        
+        // Complete the current step before moving to next
+        const completedSteps = Math.max(progress.completedSteps, progress.currentStep);
+        const nextStep = Math.min(progress.currentStep + 1, TOTAL_STEPS);
+        const stepId = STEP_SEQUENCE[nextStep - 1]; // Convert 1-based to 0-based for array index
+
         set((state) => ({
           progress: {
             ...state.progress,
             currentStep: nextStep,
             currentStepId: stepId,
+            completedSteps: completedSteps,
+            lastNavigationDirection: 'forward',
           },
         }));
       },
 
       previousStep: () => {
         const { progress } = get();
-        const prevStep = Math.max(progress.currentStep - 1, 0);
-        const stepId = STEP_SEQUENCE[prevStep];
-        
-        set((state) => ({
-          progress: {
-            ...state.progress,
-            currentStep: prevStep,
-            currentStepId: stepId,
-          },
-        }));
+        const prevStep = Math.max(progress.currentStep - 1, 1);
+        const stepId = STEP_SEQUENCE[prevStep - 1]; // Convert 1-based to 0-based for array index
+
+        set((state) => {
+          // When going back to step N, completed steps should be N-1
+          // This ensures the progress bar shows the correct percentage
+          const completedSteps = Math.max(0, prevStep - 1);
+
+          return {
+            progress: {
+              ...state.progress,
+              currentStep: prevStep,
+              currentStepId: stepId,
+              completedSteps,
+              lastNavigationDirection: 'backward',
+            },
+          };
+        });
       },
 
       completeStep: (step: number) => {
         set((state) => {
-          const newCompletedSteps = Math.max(state.progress.completedSteps, step + 1);
+          const newCompletedSteps = Math.max(state.progress.completedSteps, step);
           
           return {
             progress: {
@@ -227,12 +257,93 @@ export const useOnboardingStore = create<OnboardingState>()(
       setError: (error: string | null) => {
         set({ error });
       },
-    }),
-    {
-      name: 'onboarding-storage',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
+
+      finalizeAccountCreation: async (): Promise<{ success: boolean; error?: string; shouldReturnToRegistration?: boolean }> => {
+        const { formData } = get();
+
+        try {
+          // Validate required fields
+          if (!formData.email || !formData.password) {
+            return {
+              success: false,
+              error: 'Email and password are required',
+              shouldReturnToRegistration: true,
+            };
+          }
+
+          // Check rate limiting
+          const rateLimitCheck = await rateLimitService.checkRateLimit('signup');
+          if (!rateLimitCheck.allowed) {
+            return {
+              success: false,
+              error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
+              shouldReturnToRegistration: false,
+            };
+          }
+
+          // Final email availability check
+          const emailCheck = await authService.checkEmailExists(formData.email);
+          if (emailCheck.error) {
+            return {
+              success: false,
+              error: 'Unable to verify email availability. Please try again.',
+              shouldReturnToRegistration: true,
+            };
+          }
+
+          if (emailCheck.exists) {
+            // Track failed attempt
+            await emailRateLimitService.trackFailedAttempt();
+            return {
+              success: false,
+              error: 'This email is already registered. Please try logging in instead.',
+              shouldReturnToRegistration: true,
+            };
+          }
+
+          // Track signup attempt
+          await rateLimitService.trackAttempt('signup');
+
+          // Create account with complete onboarding data
+          const result = await authService.signUpWithProfile(
+            formData.email,
+            formData.password!,
+            formData as OnboardingFormData
+          );
+
+          if (!result.success) {
+            if (result.errorType === 'rate_limit' && result.retryAfter) {
+              await rateLimitService.setRateLimitBlock(result.retryAfter, 'signup');
+              return {
+                success: false,
+                error: 'Too many signup attempts. Please try again later.',
+                shouldReturnToRegistration: false,
+              };
+            }
+
+            return {
+              success: false,
+              error: result.error || 'Account creation failed. Please try again.',
+              shouldReturnToRegistration: true,
+            };
+          }
+
+          // Clear rate limits on successful signup
+          await rateLimitService.clearRateLimit('signup');
+          await emailRateLimitService.resetRateLimit();
+
+          return { success: true };
+
+        } catch (error) {
+          console.error('Account creation error:', error);
+          return {
+            success: false,
+            error: 'Account creation failed. Please try again.',
+            shouldReturnToRegistration: true,
+          };
+        }
+      },
+    })
 );
 
 // Selectors for common state access patterns
