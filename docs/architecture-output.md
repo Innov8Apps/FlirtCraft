@@ -5,7 +5,7 @@
 FlirtCraft is an AI-powered conversation training platform designed for mobile-first deployment. The architecture emphasizes real-time AI interactions, scalable data management, and cross-platform compatibility through React Native/Expo with a modern, performance-optimized technology stack.
 
 ### Key Architectural Decisions
-- **Mobile-First**: React Native 0.72+ via Expo 52+ for cross-platform deployment
+- **Mobile-First**: React Native 0.72+ via Expo 54+ for cross-platform deployment
 - **AI-Centric**: OpenRouter API with Google Gemini 2.5 Flash-Lite model for superior character consistency and 1.5x faster responses
 - **Database Strategy**: Supabase PostgreSQL with Row Level Security for user data isolation
 - **State Management**: 3-tier approach - React Query for server state, Zustand for client state (including subscription), React Hook Form for form state

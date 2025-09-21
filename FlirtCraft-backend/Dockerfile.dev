@@ -1,0 +1,67 @@
+# FlirtCraft Backend - Development Dockerfile
+# Optimized for fast iteration and debugging
+
+FROM python:3.11-slim-bullseye
+
+# Set development environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    ENVIRONMENT=development \
+    DEBUG=true
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    git \
+    vim \
+    htop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create development user
+RUN groupadd --gid 1000 dev && \
+    useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash dev
+
+# Set up application directory
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements-minimal.txt ./requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/tmp && \
+    chown -R dev:dev /app
+
+# Switch to development user
+USER dev
+
+# Copy application code with proper ownership
+COPY --chown=dev:dev . .
+
+# Expose port for development
+EXPOSE 8000
+
+# Health check for development
+HEALTHCHECK --interval=30s \
+            --timeout=10s \
+            --start-period=5s \
+            --retries=3 \
+            CMD curl -f http://localhost:8000/health || exit 1
+
+# Development command with hot reloading
+CMD ["uvicorn", "main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--reload", \
+     "--reload-dir", "/app", \
+     "--access-log", \
+     "--log-level", "debug"]

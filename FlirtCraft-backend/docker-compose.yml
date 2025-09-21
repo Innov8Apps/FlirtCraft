@@ -1,0 +1,140 @@
+# FlirtCraft Backend - Docker Compose
+# Scalable development environment with hot reloading
+
+name: flirtcraft
+
+services:
+  #===========================================================================
+  # FastAPI Backend Application (Development Mode)
+  #===========================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: flirtcraft-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - PORT=8000
+      - RELOAD_ENABLED=true
+
+      # Database - Using Supabase (from .env)
+      - DATABASE_URL=${DATABASE_URL}
+
+      # Redis (local)
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+
+      # External APIs
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+
+      # AI Configuration
+      - PRIMARY_AI_MODEL=${PRIMARY_AI_MODEL:-google/gemini-2.5-flash-lite}
+      - FALLBACK_AI_MODEL=${FALLBACK_AI_MODEL:-google/gemini-2.0-flash-lite-001}
+      - AI_RESPONSE_TIMEOUT=${AI_RESPONSE_TIMEOUT:-30}
+
+      # Security
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+
+      # CORS for frontend development
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:19006,exp://localhost:19000}
+
+      # Rate Limiting (relaxed for development)
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-60}
+      - RATE_LIMIT_CONVERSATIONS_PER_HOUR=${RATE_LIMIT_CONVERSATIONS_PER_HOUR:-10}
+
+      # Monitoring (optional for development)
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+    depends_on:
+      - redis
+    networks:
+      - flirtcraft
+    volumes:
+      # Hot reloading - mount source code
+      - .:/app
+      - /app/.venv
+      - app-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  #===========================================================================
+  # Redis Cache & Job Queue (Development)
+  #===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: flirtcraft-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD:-}"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - flirtcraft
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #===========================================================================
+  # Background Job Worker (Scalable)
+  #===========================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    command: ["python", "worker.py"]
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY:-2}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - WORKER_NAME=${WORKER_NAME:-worker}
+    depends_on:
+      - redis
+    networks:
+      - flirtcraft
+    volumes:
+      - .:/app
+      - /app/.venv
+      - app-logs:/app/logs
+    deploy:
+      replicas: ${WORKER_REPLICAS:-1}
+    scale: ${WORKER_SCALE:-1}
+
+#=============================================================================
+# Networks
+#=============================================================================
+networks:
+  flirtcraft:
+    driver: bridge
+    name: flirtcraft-network
+
+#=============================================================================
+# Persistent Volumes for Development
+#=============================================================================
+volumes:
+  redis-data:
+    driver: local
+    name: flirtcraft-redis-data
+
+  app-logs:
+    driver: local
+    name: flirtcraft-app-logs
