@@ -1,0 +1,464 @@
+{
+  "source": [
+    "tokens/**/*.json"
+  ],
+  "platforms": {
+    "react-native": {
+      "transformGroup": "react-native",
+      "buildPath": "build/react-native/",
+      "files": [
+        {
+          "destination": "tokens.js",
+          "format": "javascript/es6",
+          "filter": {
+            "attributes": {
+              "category": "color"
+            }
+          }
+        },
+        {
+          "destination": "typography.js",
+          "format": "javascript/es6",
+          "filter": {
+            "attributes": {
+              "category": "font"
+            }
+          }
+        },
+        {
+          "destination": "spacing.js",
+          "format": "javascript/es6",
+          "filter": {
+            "attributes": {
+              "category": "space"
+            }
+          }
+        },
+        {
+          "destination": "shadows.js",
+          "format": "javascript/es6",
+          "filter": {
+            "attributes": {
+              "category": "elevation"
+            }
+          }
+        }
+      ],
+      "transforms": [
+        "attribute/cti",
+        "name/cti/camel",
+        "color/hex",
+        "size/react-native/remToSp",
+        "size/react-native/remToDp"
+      ]
+    },
+    "ios": {
+      "transformGroup": "ios",
+      "buildPath": "build/ios/",
+      "files": [
+        {
+          "destination": "StyleDictionary.swift",
+          "format": "ios-swift/class.swift",
+          "className": "StyleDictionary"
+        },
+        {
+          "destination": "StyleDictionary.h",
+          "format": "ios/macros"
+        },
+        {
+          "destination": "StyleDictionary.m",
+          "format": "ios/static.m",
+          "type": "StyleDictionary"
+        }
+      ],
+      "transforms": [
+        "attribute/cti",
+        "name/cti/camel",
+        "color/UIColor",
+        "content/icon",
+        "size/remToPt",
+        "font/ios"
+      ]
+    },
+    "android": {
+      "transformGroup": "android",
+      "buildPath": "build/android/",
+      "files": [
+        {
+          "destination": "colors.xml",
+          "format": "android/colors"
+        },
+        {
+          "destination": "dimens.xml",
+          "format": "android/dimens"
+        },
+        {
+          "destination": "font_dimens.xml",
+          "format": "android/fontDimens"
+        },
+        {
+          "destination": "integers.xml",
+          "format": "android/integers"
+        }
+      ],
+      "transforms": [
+        "attribute/cti",
+        "name/cti/snake",
+        "color/hex8android",
+        "size/remToSp",
+        "size/remToDp"
+      ]
+    },
+    "web": {
+      "transformGroup": "web",
+      "buildPath": "build/web/",
+      "files": [
+        {
+          "destination": "variables.css",
+          "format": "css/variables"
+        },
+        {
+          "destination": "tokens.json",
+          "format": "json/nested"
+        },
+        {
+          "destination": "tokens.js",
+          "format": "javascript/es6"
+        },
+        {
+          "destination": "tokens.scss",
+          "format": "scss/variables"
+        }
+      ],
+      "transforms": [
+        "attribute/cti",
+        "name/cti/kebab",
+        "time/seconds",
+        "content/icon",
+        "size/rem",
+        "color/css"
+      ]
+    }
+  },
+  "transform": {
+    "size/react-native/remToSp": {
+      "type": "value",
+      "matcher": {
+        "attributes": {
+          "category": "font",
+          "type": "size"
+        }
+      },
+      "transformer": {
+        "type": "name",
+        "transformer": "size/remToSp"
+      }
+    },
+    "size/react-native/remToDp": {
+      "type": "value",
+      "matcher": {
+        "attributes": {
+          "category": "space"
+        }
+      },
+      "transformer": {
+        "type": "name",
+        "transformer": "size/remToDp"
+      }
+    },
+    "font/ios": {
+      "type": "value",
+      "matcher": {
+        "attributes": {
+          "category": "font"
+        }
+      },
+      "transformer": {
+        "type": "name",
+        "transformer": "font/swift"
+      }
+    }
+  },
+  "format": {
+    "javascript/es6": {
+      "format": "javascript/es6"
+    },
+    "css/variables": {
+      "format": "css/variables"
+    },
+    "json/nested": {
+      "format": "json/nested"
+    },
+    "scss/variables": {
+      "format": "scss/variables"
+    },
+    "ios-swift/class.swift": {
+      "format": "ios-swift/class.swift"
+    },
+    "ios/macros": {
+      "format": "ios/macros"
+    },
+    "ios/static.m": {
+      "format": "ios/static.m"
+    },
+    "android/colors": {
+      "format": "android/colors"
+    },
+    "android/dimens": {
+      "format": "android/dimens"
+    },
+    "android/fontDimens": {
+      "format": "android/fontDimens"
+    },
+    "android/integers": {
+      "format": "android/integers"
+    }
+  },
+  "options": {
+    "showFileHeader": true,
+    "fileHeader": {
+      "style": "short",
+      "tokens": {
+        "generated": true,
+        "file": true,
+        "version": "1.0.0"
+      }
+    },
+    "outputReferences": true,
+    "expand": {
+      "typesMap": {
+        "dimension": "number",
+        "fontFamily": "string",
+        "fontWeight": "string",
+        "duration": "string",
+        "cubicBezier": "string",
+        "number": "number",
+        "color": "string"
+      }
+    }
+  },
+  "hooks": {
+    "filters": {
+      "flirtcraft/color": {
+        "attributes": {
+          "category": "color"
+        }
+      },
+      "flirtcraft/font": {
+        "attributes": {
+          "category": "font"
+        }
+      },
+      "flirtcraft/space": {
+        "attributes": {
+          "category": "space"
+        }
+      },
+      "flirtcraft/elevation": {
+        "attributes": {
+          "category": "elevation"
+        }
+      },
+      "flirtcraft/animation": {
+        "attributes": {
+          "category": "animation"
+        }
+      }
+    },
+    "transforms": {
+      "flirtcraft/color/react-native": {
+        "type": "value",
+        "matcher": {
+          "attributes": {
+            "category": "color"
+          }
+        },
+        "transformer": "color/hex"
+      },
+      "flirtcraft/size/react-native": {
+        "type": "value",
+        "matcher": {
+          "attributes": {
+            "category": "space"
+          }
+        },
+        "transformer": "size/px"
+      },
+      "flirtcraft/elevation/react-native": {
+        "type": "value",
+        "matcher": {
+          "attributes": {
+            "category": "elevation"
+          }
+        },
+        "transformer": "shadow/react-native"
+      }
+    },
+    "formats": {
+      "flirtcraft/react-native/colors": {
+        "templatePath": "templates/react-native-colors.template"
+      },
+      "flirtcraft/react-native/typography": {
+        "templatePath": "templates/react-native-typography.template"
+      },
+      "flirtcraft/react-native/spacing": {
+        "templatePath": "templates/react-native-spacing.template"
+      },
+      "flirtcraft/react-native/shadows": {
+        "templatePath": "templates/react-native-shadows.template"
+      }
+    }
+  },
+  "log": "warn",
+  "tokens": {
+    "color": {
+      "primary": {
+        "50": { "value": "#fff7ed" },
+        "100": { "value": "#ffedd5" },
+        "200": { "value": "#fed7aa" },
+        "300": { "value": "#fdba74" },
+        "400": { "value": "#fb923c" },
+        "500": { "value": "#f97316" },
+        "600": { "value": "#ea580c" },
+        "700": { "value": "#c2410c" },
+        "800": { "value": "#9a3412" },
+        "900": { "value": "#7c2d12" }
+      },
+      "secondary": {
+        "50": { "value": "#f8fafc" },
+        "100": { "value": "#f1f5f9" },
+        "200": { "value": "#e2e8f0" },
+        "300": { "value": "#cbd5e1" },
+        "400": { "value": "#94a3b8" },
+        "500": { "value": "#64748b" },
+        "600": { "value": "#475569" },
+        "700": { "value": "#334155" },
+        "800": { "value": "#1e293b" },
+        "900": { "value": "#0f172a" }
+      },
+      "success": {
+        "50": { "value": "#f0fdf4" },
+        "500": { "value": "#22c55e" },
+        "600": { "value": "#16a34a" }
+      },
+      "warning": {
+        "50": { "value": "#fffbeb" },
+        "500": { "value": "#f59e0b" },
+        "600": { "value": "#d97706" }
+      },
+      "error": {
+        "50": { "value": "#fef2f2" },
+        "500": { "value": "#ef4444" },
+        "600": { "value": "#dc2626" }
+      },
+      "info": {
+        "50": { "value": "#eff6ff" },
+        "500": { "value": "#3b82f6" },
+        "600": { "value": "#2563eb" }
+      }
+    },
+    "font": {
+      "family": {
+        "primary": { "value": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
+        "mono": { "value": "'JetBrains Mono', 'SF Mono', Consolas, monospace" }
+      },
+      "weight": {
+        "light": { "value": "300" },
+        "regular": { "value": "400" },
+        "medium": { "value": "500" },
+        "semibold": { "value": "600" },
+        "bold": { "value": "700" }
+      },
+      "size": {
+        "xs": { "value": "0.75rem" },
+        "sm": { "value": "0.875rem" },
+        "base": { "value": "1rem" },
+        "lg": { "value": "1.125rem" },
+        "xl": { "value": "1.25rem" },
+        "2xl": { "value": "1.5rem" },
+        "3xl": { "value": "1.875rem" },
+        "4xl": { "value": "2.25rem" }
+      },
+      "lineHeight": {
+        "tight": { "value": "1.25" },
+        "normal": { "value": "1.5" },
+        "relaxed": { "value": "1.75" }
+      }
+    },
+    "space": {
+      "0": { "value": "0" },
+      "1": { "value": "0.25rem" },
+      "2": { "value": "0.5rem" },
+      "3": { "value": "0.75rem" },
+      "4": { "value": "1rem" },
+      "5": { "value": "1.25rem" },
+      "6": { "value": "1.5rem" },
+      "8": { "value": "2rem" },
+      "10": { "value": "2.5rem" },
+      "12": { "value": "3rem" },
+      "16": { "value": "4rem" },
+      "20": { "value": "5rem" },
+      "24": { "value": "6rem" }
+    },
+    "elevation": {
+      "1": {
+        "value": {
+          "shadowColor": "#000000",
+          "shadowOffset": { "width": 0, "height": 1 },
+          "shadowOpacity": 0.05,
+          "shadowRadius": 2,
+          "elevation": 1
+        }
+      },
+      "2": {
+        "value": {
+          "shadowColor": "#000000",
+          "shadowOffset": { "width": 0, "height": 2 },
+          "shadowOpacity": 0.1,
+          "shadowRadius": 4,
+          "elevation": 2
+        }
+      },
+      "3": {
+        "value": {
+          "shadowColor": "#000000",
+          "shadowOffset": { "width": 0, "height": 4 },
+          "shadowOpacity": 0.15,
+          "shadowRadius": 8,
+          "elevation": 4
+        }
+      },
+      "4": {
+        "value": {
+          "shadowColor": "#000000",
+          "shadowOffset": { "width": 0, "height": 8 },
+          "shadowOpacity": 0.2,
+          "shadowRadius": 16,
+          "elevation": 8
+        }
+      }
+    },
+    "animation": {
+      "duration": {
+        "fast": { "value": "150ms" },
+        "normal": { "value": "300ms" },
+        "slow": { "value": "500ms" }
+      },
+      "easing": {
+        "easeOut": { "value": "cubic-bezier(0.0, 0, 0.2, 1)" },
+        "easeInOut": { "value": "cubic-bezier(0.4, 0, 0.6, 1)" },
+        "spring": { "value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)" }
+      }
+    },
+    "borderRadius": {
+      "none": { "value": "0" },
+      "sm": { "value": "0.125rem" },
+      "base": { "value": "0.25rem" },
+      "md": { "value": "0.375rem" },
+      "lg": { "value": "0.5rem" },
+      "xl": { "value": "0.75rem" },
+      "2xl": { "value": "1rem" },
+      "full": { "value": "9999px" }
+    }
+  }
+}
