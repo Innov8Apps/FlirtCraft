@@ -1,217 +1,575 @@
-# FlirtCraft Backend - Local Development Setup
+# FlirtCraft Backend API
 
-AI-powered conversation training platform backend built with FastAPI, designed for local development with hot reloading and quick iteration.
+## 🚀 Overview
 
-## 🚀 Quick Start
+The FlirtCraft Backend is a comprehensive FastAPI-based application that powers the AI-driven conversation training platform. Built specifically to support the onboarding feature and user management system, it provides secure, scalable APIs for user authentication, multi-step onboarding, AI-powered conversation practice, and real-time analytics.
 
-### Prerequisites
-- Docker and Docker Compose installed
-- `.env` file is already configured with working credentials
+## ✨ Key Features
 
-### Start Development Environment
-```bash
-# Build and start all services
-docker-compose up --build
+### 🔐 Authentication & Security
+- **Supabase Auth Integration**: Secure user registration and authentication
+- **JWT Token Management**: Access and refresh token handling
+- **Email Verification**: Complete email verification flow
+- **Row Level Security**: Database-level security with RLS policies
+- **Rate Limiting**: Configurable rate limits for API protection
 
-# Or run in background
-docker-compose up -d --build
+### 🎯 Onboarding System
+- **Multi-Step Flow**: Guided onboarding with progress tracking
+- **Age Verification**: 18+ compliance with privacy-focused validation
+- **User Preferences**: Dating preferences, age ranges, relationship goals
+- **Skill Goals**: Personalized conversation skill development tracking
+- **Privacy Controls**: Granular privacy and notification settings
+- **Completion Analytics**: Detailed onboarding funnel metrics
 
-# Start only backend and Redis (recommended for development)
-docker-compose up backend redis
+### 🤖 AI-Powered Conversations
+- **OpenRouter Integration**: Advanced AI conversation generation
+- **Dynamic Character Creation**: Context-aware AI personalities
+- **Scenario-Based Practice**: Coffee shops, bookstores, parks, and more
+- **Difficulty Levels**: Green (easy), Yellow (moderate), Red (challenging)
+- **Real-Time Feedback**: AI-powered conversation analysis
+- **Performance Tracking**: Session scores and improvement suggestions
 
-# Start with background worker (optional)
-docker-compose --profile with-worker up
+### 📊 Analytics & Monitoring
+- **Real-Time Metrics**: Live dashboard with user activity
+- **Onboarding Funnel**: Step-by-step conversion tracking
+- **User Engagement**: DAU, WAU, MAU, and retention metrics
+- **Conversation Analytics**: Usage patterns and success rates
+- **Performance Monitoring**: Service health and response times
+
+### ⚡ Background Processing
+- **Redis Job Queue**: Asynchronous task processing
+- **Email Notifications**: Welcome emails and verification reminders
+- **Analytics Processing**: Event tracking and metric calculation
+- **User Progress Updates**: XP, achievements, and level progression
+
+## 🏗️ Architecture
+
+### Technology Stack
+- **Framework**: FastAPI 0.104.1 (High-performance async API)
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: Supabase Auth with JWT tokens
+- **AI Service**: OpenRouter API for conversation generation
+- **Caching**: Redis for sessions, caching, and job queues
+- **Validation**: Pydantic for request/response validation
+- **Containerization**: Docker & Docker Compose
+
+### Service Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   FastAPI App   │    │   Supabase      │    │   OpenRouter    │
+│                 │◄───►│   Auth & DB     │    │   AI Service    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │     Redis       │
+                    │  Cache & Jobs   │
+                    └─────────────────┘
 ```
 
-The API will be available at: http://localhost:8000
+## 🚦 Quick Start
 
-### API Documentation
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- API Status: http://localhost:8000/
-- Health Check: http://localhost:8000/health
+### Prerequisites
+- Python 3.11+
+- Docker & Docker Compose
+- Supabase project
+- OpenRouter API key
+- Redis instance
 
-### Quick Verification
-After starting, verify the setup:
+### Using Docker Compose (Recommended)
+
 ```bash
-# Check service status
-docker-compose ps
+# Clone the repository
+git clone <repository-url>
+cd FlirtCraft-backend
 
-# Test API endpoints
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your API keys and configuration
+
+# Start all services
+docker-compose up -d
+
+# Verify health
 curl http://localhost:8000/health
-curl http://localhost:8000/
 
-# View logs
-docker-compose logs -f backend
+# View API documentation
+open http://localhost:8000/docs
+```
+
+### Manual Development Setup
+
+```bash
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run the application
+python main.py
+
+# Access the API
+open http://localhost:8000/docs
 ```
 
 ## 🔧 Configuration
 
-### Environment Variables
-The `.env` file is already configured with working development credentials:
+### Required Environment Variables
 
 ```bash
-# External APIs (Pre-configured)
-OPENROUTER_API_KEY=sk-or-v1-[configured]
-SUPABASE_URL=https://uqatccsnlfehzmjujeyo.supabase.co
-SUPABASE_ANON_KEY=[configured]
-SUPABASE_SERVICE_KEY=[configured]
+# Application Settings
+ENVIRONMENT=development
+DEBUG=true
+SECRET_KEY=your-256-bit-secret-key
 
-# Database (Supabase - Pre-configured)
-DATABASE_URL=postgresql://[configured]
+# Database & Auth (Supabase)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_KEY=your-supabase-service-key
 
-# Security (Development keys - change in production)
-SECRET_KEY=[configured]
-JWT_SECRET_KEY=[configured]
+# AI Integration
+OPENROUTER_API_KEY=your-openrouter-api-key
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379
+
+# CORS for Frontend
+CORS_ORIGINS=http://localhost:3000,http://localhost:19006
 ```
 
-### ✅ All Issues Fixed
-- **Version attribute warning**: Removed obsolete `version: '3.9'` from docker-compose.yml
-- **SUPABASE_KEY variable**: Fixed environment variable name mismatch (`SUPABASE_KEY` → `SUPABASE_ANON_KEY`)
-- **Service build error**: Resolved build dependencies and Docker configuration
-- **Missing files**: Created `main.py`, `worker.py`, and minimal requirements
-- **Local development mode**: Optimized for fast iteration with hot reloading
-
-## 🏗️ Architecture
-
-Based on the FlirtCraft technical architecture:
-
-### Core Services
-- **FastAPI Backend**: Main API server with hot reloading
-- **Redis**: Cache and job queue
-- **Background Worker**: Optional for job processing
-- **Supabase**: External PostgreSQL database with auth
-
-### Key Features Implemented
-- Health check endpoint (`/health`)
-- Basic scenario endpoints
-- CORS configuration for frontend development
-- Environment-based configuration
-- Structured logging
-
-## 🐳 Docker Services
-
-### `backend`
-- FastAPI application with hot reloading
-- Mounts source code for live updates
-- Exposed on port 8000
-
-### `redis`
-- Redis 7 Alpine for caching and job queue
-- Persistent data storage
-- Exposed on port 6379
-
-### `worker` (Optional)
-- Background job processor
-- Same codebase as backend
-- Runs with `--profile with-worker`
-
-## 🔍 Development Commands
+### Optional Configuration
 
 ```bash
-# View logs
-docker-compose logs -f backend
-docker-compose logs -f redis
-docker-compose logs -f worker
+# Email Service
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
 
-# Rebuild services
-docker-compose build
-docker-compose up --build
+# Monitoring & Analytics
+SENTRY_DSN=your-sentry-dsn-for-error-tracking
 
-# Stop services
-docker-compose down
-
-# Clean up everything
-docker-compose down -v --remove-orphans
+# Performance Tuning
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=60
+FREE_CONVERSATIONS_PER_DAY=3
+PREMIUM_CONVERSATIONS_PER_DAY=50
 ```
 
-## 🏥 Health Monitoring
+## 📋 API Documentation
 
-### Health Check
+Visit http://localhost:8000/docs for interactive API documentation.
+
+### Core Endpoints
+
+#### 🔐 Authentication (`/api/v1/auth`)
 ```bash
-curl http://localhost:8000/health
+# User Registration
+POST /api/v1/auth/register
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "confirm_password": "SecurePass123!",
+  "agreed_to_terms": true,
+  "agreed_to_privacy": true,
+  "marketing_opt_in": false
+}
+
+# User Login
+POST /api/v1/auth/login
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+# Email Verification
+POST /api/v1/auth/verify-email
+{
+  "token": "verification-token-from-email"
+}
+
+# Get Current User
+GET /api/v1/auth/me
+Authorization: Bearer <jwt-token>
 ```
 
-### Service Status
-- Backend: http://localhost:8000/
-- API Docs: http://localhost:8000/docs
-- Redis: Accessible on localhost:6379
+#### 🎯 Onboarding (`/api/v1/onboarding`)
+```bash
+# Get Onboarding Flow
+GET /api/v1/onboarding/flow
+Authorization: Bearer <jwt-token>
 
-## 📝 Development Notes
+# Age Verification
+POST /api/v1/onboarding/age-verification
+{
+  "birth_year": 1995
+}
 
-### Hot Reloading
-The development setup includes:
-- Source code mounting for instant updates
-- Uvicorn with `--reload` flag
-- Debug logging enabled
+# Set Preferences
+POST /api/v1/onboarding/preferences
+{
+  "target_gender": "female",
+  "target_age_min": 22,
+  "target_age_max": 30,
+  "relationship_goal": "dating"
+}
 
-### CORS Configuration
-Pre-configured for common frontend development ports:
-- React: http://localhost:3000
-- Expo: http://localhost:19006, exp://localhost:19000
+# Set Skill Goals
+POST /api/v1/onboarding/skill-goals
+{
+  "primary_skills": ["conversation_starters", "flow_maintenance"],
+  "specific_challenges": ["approach_anxiety", "maintaining_interest"],
+  "experience_level": "beginner",
+  "practice_frequency": "daily"
+}
 
-### Rate Limiting
-Relaxed for development:
-- 60 requests per minute
-- 10 conversations per hour
+# Complete Onboarding
+POST /api/v1/onboarding/complete
+```
 
-## 🚧 Current Implementation Status
+#### 🎭 Scenarios (`/api/v1/scenarios`)
+```bash
+# List Available Scenarios
+GET /api/v1/scenarios
+?include_premium=true
 
-### ✅ Completed
-- Docker Compose setup for local development
-- Basic FastAPI application structure
-- Health check endpoints
-- Environment configuration
-- Hot reloading setup
-- Redis integration setup
-- Background worker framework
+# Get Scenario Details
+GET /api/v1/scenarios/coffee_shop
 
-### 🔄 In Progress / TODO
-- Database models and migrations
-- Authentication integration
-- AI service implementation (OpenRouter + Gemini)
-- Conversation endpoints
-- Real-time WebSocket support
-- Complete background job processing
+# Generate Scenario Context
+POST /api/v1/scenarios/coffee_shop/context
+{
+  "difficulty_level": "green"
+}
+```
 
-### 📋 Next Steps
-1. Implement database models based on architecture
-2. Set up Supabase integration
-3. Implement OpenRouter AI service
-4. Add conversation management endpoints
-5. Set up real-time features
+#### 💬 Conversations (`/api/v1/conversations`)
+```bash
+# Create New Conversation
+POST /api/v1/conversations
+{
+  "scenario_type": "coffee_shop",
+  "difficulty_level": "green"
+}
+
+# Send Message
+POST /api/v1/conversations/{conversation_id}/messages
+{
+  "content": "Hi, I love your book choice!"
+}
+
+# End Conversation
+POST /api/v1/conversations/{conversation_id}/end
+
+# Get Conversation History
+GET /api/v1/conversations/{conversation_id}
+```
+
+#### 📊 Analytics (`/api/v1/analytics`)
+```bash
+# Real-Time Dashboard
+GET /api/v1/analytics/dashboard
+
+# Onboarding Funnel
+GET /api/v1/analytics/onboarding-funnel?date_range=7
+
+# Conversation Metrics
+GET /api/v1/analytics/conversations?date_range=30
+
+# User Engagement
+GET /api/v1/analytics/engagement?date_range=7
+```
+
+## 🏃‍♂️ Development
+
+### Project Structure
+```
+FlirtCraft-backend/
+├── app/
+│   ├── core/                    # Core configuration
+│   │   ├── config.py           # Application settings
+│   │   ├── database.py         # Database configuration
+│   │   ├── supabase_client.py  # Supabase integration
+│   │   ├── redis_client.py     # Redis client
+│   │   └── auth.py             # Authentication logic
+│   ├── models/                 # SQLAlchemy models
+│   │   └── user.py             # User, Profile, Conversation models
+│   ├── schemas/                # Pydantic schemas
+│   │   └── user.py             # Request/response validation
+│   ├── routers/                # API endpoints
+│   │   ├── auth.py             # Authentication endpoints
+│   │   ├── onboarding.py       # Onboarding flow
+│   │   ├── scenarios.py        # Scenario management
+│   │   ├── conversations.py    # Conversation practice
+│   │   └── analytics.py        # Analytics & metrics
+│   ├── services/               # Business logic
+│   │   ├── openrouter.py       # AI integration
+│   │   └── analytics.py        # Analytics service
+│   └── main.py                 # FastAPI app factory
+├── requirements.txt            # Dependencies
+├── requirements-dev.txt        # Development dependencies
+├── docker-compose.yml          # Development services
+├── Dockerfile                  # Production container
+├── .env.example               # Environment template
+└── README.md                  # This file
+```
+
+### Testing
+
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Type checking
+mypy app/
+
+# Code formatting
+black app/
+isort app/
+
+# Linting
+flake8 app/
+```
+
+### Development Commands
+
+```bash
+# Start development server with auto-reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Run with debug logging
+DEBUG=true python main.py
+
+# Database migrations (if using Alembic)
+alembic revision --autogenerate -m "Add user profiles"
+alembic upgrade head
+
+# Reset development database
+python -c "from app.core.database import create_tables; create_tables()"
+```
+
+## 🚀 Deployment
+
+### Docker Production
+
+```bash
+# Build production image
+docker build -t flirtcraft-backend:latest .
+
+# Run production container
+docker run -d \
+  --name flirtcraft-backend \
+  --env-file .env.production \
+  -p 8000:8000 \
+  flirtcraft-backend:latest
+```
+
+### Docker Compose Production
+
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: production
+      DEBUG: false
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+```
+
+## 📊 Monitoring & Observability
+
+### Health Checks
+
+The `/health` endpoint provides comprehensive service status:
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.0.0",
+  "environment": "production",
+  "services": {
+    "api": "healthy",
+    "database": "healthy",
+    "supabase": "healthy",
+    "openrouter": "healthy",
+    "redis": "healthy"
+  },
+  "details": {
+    "database": {
+      "status": "healthy",
+      "connected": true
+    },
+    "supabase": {
+      "status": "healthy",
+      "connected": true
+    },
+    "openrouter": {
+      "status": "healthy",
+      "connected": true,
+      "models_available": 15
+    },
+    "redis": {
+      "status": "healthy",
+      "connected": true,
+      "memory_usage": "2.1M",
+      "connected_clients": 3
+    }
+  }
+}
+```
+
+### Metrics Collection
+
+Automatic tracking of:
+- **Request Metrics**: Response times, error rates, throughput
+- **User Metrics**: Registration funnel, engagement, retention
+- **Business Metrics**: Conversation success rates, premium conversion
+- **System Metrics**: Database performance, AI service latency
+
+### Logging
+
+Structured JSON logging with levels:
+```python
+# Example log entry
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "level": "INFO",
+  "service": "flirtcraft-backend",
+  "module": "auth",
+  "event": "user_registered",
+  "user_id": "123e4567-e89b-12d3-a456-426614174000",
+  "metadata": {
+    "email": "user@example.com",
+    "registration_source": "onboarding"
+  }
+}
+```
+
+## 🔒 Security
+
+### Authentication Flow
+1. User registers with email/password
+2. Supabase creates auth account
+3. Email verification sent
+4. User verifies email
+5. JWT tokens issued for API access
+6. Tokens refresh automatically
+
+### Data Protection
+- **Encryption**: All sensitive data encrypted at rest
+- **Input Validation**: Comprehensive Pydantic validation
+- **SQL Injection Prevention**: SQLAlchemy ORM protection
+- **XSS Protection**: Secure headers and content validation
+- **Rate Limiting**: Per-user and per-IP rate limits
+
+### Privacy Compliance
+- **GDPR Ready**: User data export and deletion
+- **Minimal Data Collection**: Only required information stored
+- **Consent Management**: Granular privacy controls
+- **Data Retention**: Configurable retention policies
 
 ## 🆘 Troubleshooting
 
 ### Common Issues
 
-**Port 8000 already in use:**
+#### Database Connection Failed
 ```bash
-docker-compose down
-# Or change port in docker-compose.yml
+# Check Supabase configuration
+curl -H "Authorization: Bearer $SUPABASE_KEY" $SUPABASE_URL/rest/v1/users
+
+# Verify environment variables
+python -c "from app.core.config import settings; print(settings.supabase_url)"
 ```
 
-**Redis connection issues:**
+#### OpenRouter API Errors
 ```bash
-docker-compose logs redis
-# Check Redis is running and accessible
+# Test API key
+curl -H "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/models
+
+# Check quotas and limits in OpenRouter dashboard
 ```
 
-**Environment variable warnings:**
+#### Redis Connection Issues
 ```bash
-# Ensure all required variables are set in .env
-cp .env.example .env
-# Edit .env with your actual values
+# Test Redis connection
+redis-cli -u $REDIS_URL ping
+
+# Check Redis memory usage
+redis-cli -u $REDIS_URL info memory
 ```
 
-**Build failures:**
-```bash
-# Clean Docker cache
-docker system prune -f
-docker-compose build --no-cache
-```
+## 🤝 Contributing
 
-For additional help, check the logs:
-```bash
-docker-compose logs -f
-```
+### Development Workflow
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make changes and add tests**
+4. **Run test suite**: `pytest`
+5. **Check code quality**: `black app/ && flake8 app/`
+6. **Commit changes**: `git commit -m 'Add amazing feature'`
+7. **Push to branch**: `git push origin feature/amazing-feature`
+8. **Open Pull Request**
+
+### Code Standards
+- **Python**: Follow PEP 8 with Black formatting
+- **Type Hints**: Required for all function signatures
+- **Documentation**: Comprehensive docstrings
+- **Tests**: Minimum 80% code coverage
+- **Security**: No hardcoded secrets or credentials
+
+## 📞 Support
+
+### Getting Help
+- **GitHub Issues**: Bug reports and feature requests
+- **API Documentation**: `/docs` endpoint for detailed API reference
+- **Health Check**: `/health` for service status
+- **Development Info**: `/dev/info` for configuration debugging
+
+### Resources
+- **Supabase Documentation**: https://supabase.com/docs
+- **FastAPI Documentation**: https://fastapi.tiangolo.com
+- **OpenRouter API**: https://openrouter.ai/docs
+- **Redis Documentation**: https://redis.io/documentation
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Built with ❤️ for FlirtCraft - AI-Powered Conversation Training Platform**
+
+*The backend system that powers confident conversations and meaningful connections.*

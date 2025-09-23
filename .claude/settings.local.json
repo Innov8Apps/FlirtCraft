@@ -63,7 +63,9 @@
       "WebFetch(domain:openrouter.ai)",
       "Bash(docker system prune:*)",
       "Bash(docker run:*)",
-      "Bash(/bashes)"
+      "Bash(/bashes)",
+      "Bash(pip install:*)",
+      "mcp__supabase__get_project_url"
     ],
     "deny": [],
     "ask": []
